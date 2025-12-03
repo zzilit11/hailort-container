@@ -10,9 +10,9 @@ spec:
       image: hailo-app:v1
       imagePullPolicy: Never
 
-      #command: ["./run_all.sh"]
+      command: ["./run_all.sh"]
       # 디버깅을 위해 컨테이너를 죽지 않게 유지함: 이 경우 shell에 진입해서 실행
-      command: ["sleep", "infinity"]
+      #command: ["sleep", "infinity"]
 
 
       # [추가 1] 하드웨어 제어 및 메모리 매핑을 위해 privileged 모드 필수
