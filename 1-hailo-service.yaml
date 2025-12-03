@@ -21,6 +21,20 @@ spec:
           # [수정] 서비스 실행 + 전경 실행 옵션(추정)
           command: ["hailort_service", "standalone"]
 
+          env:
+            - name: HAILORT_LOGGER_PATH
+              value: /home/hailo/log_service
+            - name: HAILO_MONITOR
+              value: "1"
+            - name: HAILO_TRACE
+              value: "1"
+            - name: HAILO_TRACE_TIME_IN_SECONDS_BOUNDED_DUMP
+              value: "0"
+            - name: HAILO_TRACE_SIZE_IN_KB_BOUNDED_DUMP
+              value: "0"
+            - name: HAILO_TRACE_PATH
+              value: /home/hailo/traces
+
           #args: ["standalone"]
           
           # [수정 3] NPU 하드웨어 접근을 위해 privileged 권한 필수
