@@ -68,6 +68,19 @@ kubectl exec -it <POD_NAME> -- /bin/bash
 watch -n 0.5 hailort-cli run-stats
 # 확인 후 exit으로 빠져나옴
 ```
+
+#### [Trace] DaemonSet에서 트레이스 파일 확인
+`1-hailo-service.yaml`에 HAILORT/HAILO 관련 환경변수가 포함되어 있어 DaemonSet으로 실행해도 트레이스와 로그가 남는다. 트레이스와 로그는 호스트의 디렉터리에 그대로 마운트되므로 노드에서 바로 확인할 수 있다.
+
+```bash
+# (노드에서) 트레이스/로그 디렉터리 내용 확인
+ls /home/hailo/traces
+ls /home/hailo/log_service
+
+# (파드 내부에서) 환경변수와 경로 확인
+kubectl exec -it <POD_NAME> -- env | grep HAILO
+kubectl exec -it <POD_NAME> -- ls /home/hailo/traces
+```
 --------------------------
 ### 4. 워크로드 실행 (Application Layer)
 실제 멀티 프로세스 애플리케이션(hailo-multi-process-runner)을 실행합니다.
