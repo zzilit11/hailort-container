@@ -26,7 +26,7 @@ spec:
                 name: hailort-service-env
 
           #args: ["standalone"]
-          
+
           # [수정 3] NPU 하드웨어 접근을 위해 privileged 권한 필수
           securityContext:
             privileged: true
@@ -45,7 +45,7 @@ spec:
             # [추가 권장] 디바이스 파일 직접 마운트 (privileged가 있으면 생략 가능하나 명시 권장)
             - name: hailo-device
               mountPath: /dev/hailo0
-      
+
       volumes:
         - name: hailort-socket
           hostPath:
@@ -71,3 +71,4 @@ spec:
         - name: hailo-device
           hostPath:
             path: /dev/hailo0
+            type: CharDevice
