@@ -146,6 +146,25 @@ kubectl get pods -l app=hailo-worker
 kubectl logs -f hailo-worker-<JOB_ID>
 ```
 
-- 스크립트는 `1-hailo-service.yaml`을 적용하고, DaemonSet이 준비될 때까지 `kubectl rollout status`로 대기한다.
+- 스크립트는 트레이스/로그 경로가 담긴 `hailort_service.env`를 ConfigMap(`hailort-service-env`)으로 생성한 뒤 `1-hailo-service.yaml`을 적용하고, DaemonSet이 준비될 때까지 `kubectl rollout status`로 대기한다.
 - 각 워커 파드는 `WORKER_JOB_ID` 환경변수를 통해 서로 다른 모델을 선택하여 `run_all.sh`를 실행한다. 로그는 `/home/hailo/logs_k3s`(호스트) 경로에 Job별로 저장된다.
+- 워커 컨테이너에도 `HAILO_TRACE` 관련 환경변수가 설정되어 있어, 라이브러리 레벨 트레이스가 `/home/hailo/traces`(호스트)에 남는다. 해당 디렉터리가 비어있다면 권한 또는 마운트 상태를 먼저 확인한다.
+--------------------------
+### 6. 호스트에서 hailort_service 트레이스 활성화
+HailoRT 빌드 결과에는 `hailort_service` 실행 파일과 systemd 유닛(`hailort.service`)이 포함되어 있으나, 기본 환경설정 파일에서는 트레이스가 비활성화되어 있다. 아래 절차로 트레이스를 켠 상태의 설정을 `/etc/default/hailort_service`에 배포할 수 있다.
+
+1) 저장소 루트에 포함된 `hailort_service.env`(트레이스 활성화 값 포함)를 `/etc/default/hailort_service`로 복사한다. 제공된 스크립트를 사용하면 systemd 재로딩 및 서비스 시작까지 자동 처리된다.
+
+```bash
+sudo ./enable_hailort_trace.sh
+```
+
+2) systemd 없이 수동으로 적용하려면 다음과 같이 복사 후 서비스(또는 프로세스)를 다시 실행한다.
+
+```bash
+sudo install -Dm644 hailort_service.env /etc/default/hailort_service
+# hailort_service를 수동으로 재시작하거나, systemctl이 있다면 daemon-reload 후 enable --now 실행
+```
+
+해당 설정이 적용되면 `HAILORT_LOGGER_PATH=/home/hailo/log_service`, `HAILO_TRACE_PATH=/home/hailo/traces`에 로그/트레이스가 남는다. DaemonSet 컨테이너는 같은 경로를 호스트에 마운트하므로, 동일한 위치에서 파일을 확인할 수 있다.
 --------------------------

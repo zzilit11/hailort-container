@@ -37,6 +37,8 @@ fi
 
 # daemon set 배포
 echo "[1/3] hailo-service DaemonSet을 적용한다."
+# HAILO_TRACE/HAILORT_LOGGER_PATH 값이 담긴 env 파일을 ConfigMap으로 배포한다.
+kubectl create configmap hailort-service-env --from-env-file=hailort_service.env -o yaml --dry-run=client | kubectl apply -f -
 kubectl apply -f "$SERVICE_MANIFEST"
 
 # DaemonSet 준비 대기 (최대 2분)
@@ -80,6 +82,17 @@ spec:
       imagePullPolicy: Never
       command: ["/bin/bash", "-lc", "./run_all.sh"]
       env:
+        # HailoRT trace / logger 설정을 워커에도 적용해, 서비스/애플리케이션 모두 동일 경로에 기록되도록 한다.
+        - name: HAILORT_LOGGER_PATH
+          value: /home/hailo/log_service
+        - name: HAILO_TRACE
+          value: "1"
+        - name: HAILO_TRACE_TIME_IN_SECONDS_BOUNDED_DUMP
+          value: "0"
+        - name: HAILO_TRACE_SIZE_IN_KB_BOUNDED_DUMP
+          value: "0"
+        - name: HAILO_TRACE_PATH
+          value: /home/hailo/traces
         - name: WORKER_JOB_ID
           value: "${job_id}"
         - name: WORKER_INSTANCE_INDEX
@@ -89,6 +102,10 @@ spec:
       volumeMounts:
         - name: log-output-dir
           mountPath: /app/logs
+        - name: host-log-service
+          mountPath: /home/hailo/log_service
+        - name: host-traces
+          mountPath: /home/hailo/traces
         - name: host-home-hailo
           mountPath: /home/hailo
         - name: dshm
@@ -103,6 +120,14 @@ spec:
     - name: log-output-dir
       hostPath:
         path: /home/hailo/logs_k3s
+        type: DirectoryOrCreate
+    - name: host-log-service
+      hostPath:
+        path: /home/hailo/log_service
+        type: DirectoryOrCreate
+    - name: host-traces
+      hostPath:
+        path: /home/hailo/traces
         type: DirectoryOrCreate
     - name: host-home-hailo
       hostPath:
