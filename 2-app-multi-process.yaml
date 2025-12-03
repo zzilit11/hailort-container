@@ -24,10 +24,6 @@ spec:
           mountPath: /app/logs
         - name: host-home-hailo
           mountPath: /home/hailo
-        - name: dshm
-          mountPath: /dev/shm
-        - name: host-lock
-          mountPath: /var/lock
         - name: hailort-socket
           mountPath: /tmp
 
@@ -44,14 +40,6 @@ spec:
     - name: host-home-hailo
       hostPath:
         path: /home/hailo
-        type: Directory
-    - name: dshm
-      hostPath:
-        path: /dev/shm
-        type: Directory
-    - name: host-lock
-      hostPath:
-        path: /var/lock
         type: Directory
     - name: hailort-socket
       hostPath:

@@ -14,11 +14,8 @@ spec:
       hostNetwork: true
       containers:
         - name: hailo-service
-          # [수정 1] 실제 빌드한 이미지 이름 사용
           image: hailo-app:v1
-          # [수정 2] 로컬 이미지 사용 강제
           imagePullPolicy: Never
-          # [수정] 서비스 실행 + 전경 실행 옵션(추정)
           command: ["hailort_service", "standalone"]
 
           envFrom:
@@ -38,10 +35,7 @@ spec:
               mountPath: /home/hailo/log_service
             - name: host-traces
               mountPath: /home/hailo/traces
-            - name: dshm
-              mountPath: /dev/shm
-            - name: host-lock
-              mountPath: /var/lock
+
             # [추가 권장] 디바이스 파일 직접 마운트 (privileged가 있으면 생략 가능하나 명시 권장)
             - name: hailo-device
               mountPath: /dev/hailo0
@@ -59,14 +53,7 @@ spec:
           hostPath:
             path: /home/hailo/traces
             type: DirectoryOrCreate
-        - name: dshm
-          hostPath:
-            path: /dev/shm
-            type: Directory
-        - name: host-lock
-          hostPath:
-            path: /var/lock
-            type: DirectoryOrCreate
+
         # [추가 권장]
         - name: hailo-device
           hostPath:
