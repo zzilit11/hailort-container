@@ -101,4 +101,21 @@ chmod +x run_all.sh run_worker.sh
 # 3. 스크립트 실행
 ./run_all.sh
 ```
+
+#### 실행 방법 C: 단일 워커 파드로 특정 Job 실행
+각 워커 파드가 서로 다른 모델을 실행하도록 JOB ID와 인스턴스 인덱스를 지정할 수 있다.
+
+```bash
+# 실행할 Job ID 지정 (run_configuration.json의 jobs[].id 값)
+export WORKER_JOB_ID=<JOB_ID>
+
+# (선택) 동일 Job 내에서 사용할 인스턴스 인덱스 지정, 기본값 1
+export WORKER_INSTANCE_INDEX=1
+
+# 스크립트 실행 시 대상 Job만 실행하고 나머지는 건너뜀
+./run_all.sh
+```
+
+- 여러 Job을 하나의 컨테이너에서 순차 실행하는 기본 동작과 달리, 단일 워커 모드에서는 지정된 Job만 실행하고 종료한다.
+- 단일 워커 모드에서는 공유 로그 디렉터리를 비우지 않으므로, 각 워커 파드의 로그가 `log_dir` 하위의 `job_<id>_<index>.log` 파일로 분리된다.
 --------------------------
