@@ -13,6 +13,7 @@ sudo systemctl stop hailort.service
 sudo systemctl disable hailort.service
 ```
 --------------------------
+--------------------------
 ### 1. 이미지 빌드 및 K3s 배포 (Build & Import)
 K3s는 로컬 Docker 데몬의 이미지를 바로 볼 수 없으므로, 빌드 후 K3s 런타임(containerd)으로 이미지를 옮겨야 합니다.
 ```bash
@@ -67,6 +68,19 @@ kubectl exec -it <POD_NAME> -- /bin/bash
 watch -n 0.5 hailort-cli run-stats
 # 확인 후 exit으로 빠져나옴
 ```
+
+#### [Trace] DaemonSet에서 트레이스 파일 확인
+`1-hailo-service.yaml`에 HAILORT/HAILO 관련 환경변수가 포함되어 있어 DaemonSet으로 실행해도 트레이스와 로그가 남는다. 트레이스와 로그는 호스트의 디렉터리에 그대로 마운트되므로 노드에서 바로 확인할 수 있다.
+
+```bash
+# (노드에서) 트레이스/로그 디렉터리 내용 확인
+ls /home/hailo/traces
+ls /home/hailo/log_service
+
+# (파드 내부에서) 환경변수와 경로 확인
+kubectl exec -it <POD_NAME> -- env | grep HAILO
+kubectl exec -it <POD_NAME> -- ls /home/hailo/traces
+```
 --------------------------
 ### 4. 워크로드 실행 (Application Layer)
 실제 멀티 프로세스 애플리케이션(hailo-multi-process-runner)을 실행합니다.
@@ -101,4 +115,56 @@ chmod +x run_all.sh run_worker.sh
 # 3. 스크립트 실행
 ./run_all.sh
 ```
+
+#### 실행 방법 C: 단일 워커 파드로 특정 Job 실행
+각 워커 파드가 서로 다른 모델을 실행하도록 JOB ID와 인스턴스 인덱스를 지정할 수 있다.
+
+```bash
+# 실행할 Job ID 지정 (run_configuration.json의 jobs[].id 값)
+export WORKER_JOB_ID=<JOB_ID>
+
+# (선택) 동일 Job 내에서 사용할 인스턴스 인덱스 지정, 기본값 1
+export WORKER_INSTANCE_INDEX=1
+
+# 스크립트 실행 시 대상 Job만 실행하고 나머지는 건너뜀
+./run_all.sh
+```
+
+- 여러 Job을 하나의 컨테이너에서 순차 실행하는 기본 동작과 달리, 단일 워커 모드에서는 지정된 Job만 실행하고 종료한다.
+- 단일 워커 모드에서는 공유 로그 디렉터리를 비우지 않으므로, 각 워커 파드의 로그가 `log_dir` 하위의 `job_<id>_<index>.log` 파일로 분리된다.
+--------------------------
+### 5. DaemonSet + 단일 워커 파드 배포 스크립트
+`run_k8s_workers.sh`를 사용하면 hailo-service DaemonSet을 적용한 뒤, `run_configuration.json`에 정의된 각 Job을 순서대로 하나씩 실행하는 워커 파드를 지정한 개수만큼 생성할 수 있다. `worker_count` 값은 정의된 Job 개수를 초과할 수 없다.
+
+```bash
+# 워커 파드 3개 생성 (jobs[0..2] 각각 사용)
+chmod +x run_k8s_workers.sh
+./run_k8s_workers.sh 3
+
+# 생성된 파드 상태 확인
+kubectl get pods -l app=hailo-worker
+kubectl logs -f hailo-worker-<JOB_ID>
+```
+
+- 스크립트는 `1-hailo-service.yaml`을 적용하고, DaemonSet이 준비될 때까지 `kubectl rollout status`로 대기한다.
+- 각 워커 파드는 `WORKER_JOB_ID` 환경변수를 통해 서로 다른 모델을 선택하여 `run_all.sh`를 실행한다. 로그는 `/home/hailo/logs_k3s`(호스트) 경로에 Job별로 저장된다.
+- 워커 컨테이너에도 `HAILO_TRACE` 관련 환경변수가 설정되어 있어, 라이브러리 레벨 트레이스가 `/home/hailo/traces`(호스트)에 남는다. 해당 디렉터리가 비어있다면 권한 또는 마운트 상태를 먼저 확인한다.
+--------------------------
+### 6. 호스트에서 hailort_service 트레이스 활성화
+HailoRT 빌드 결과에는 `hailort_service` 실행 파일과 systemd 유닛(`hailort.service`)이 포함되어 있으나, 기본 환경설정 파일에서는 트레이스가 비활성화되어 있다. 아래 절차로 트레이스를 켠 상태의 설정을 `/etc/default/hailort_service`에 배포할 수 있다.
+
+1) 저장소 루트에 포함된 `hailort_service.env`(트레이스 활성화 값 포함)를 `/etc/default/hailort_service`로 복사한다. 제공된 스크립트를 사용하면 systemd 재로딩 및 서비스 시작까지 자동 처리된다.
+
+```bash
+sudo ./enable_hailort_trace.sh
+```
+
+2) systemd 없이 수동으로 적용하려면 다음과 같이 복사 후 서비스(또는 프로세스)를 다시 실행한다.
+
+```bash
+sudo install -Dm644 hailort_service.env /etc/default/hailort_service
+# hailort_service를 수동으로 재시작하거나, systemctl이 있다면 daemon-reload 후 enable --now 실행
+```
+
+해당 설정이 적용되면 `HAILORT_LOGGER_PATH=/home/hailo/log_service`, `HAILO_TRACE_PATH=/home/hailo/traces`에 로그/트레이스가 남는다. DaemonSet 컨테이너는 같은 경로를 호스트에 마운트하므로, 동일한 위치에서 파일을 확인할 수 있다.
 --------------------------
