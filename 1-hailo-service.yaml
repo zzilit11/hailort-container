@@ -21,19 +21,9 @@ spec:
           # [수정] 서비스 실행 + 전경 실행 옵션(추정)
           command: ["hailort_service", "standalone"]
 
-          env:
-            - name: HAILORT_LOGGER_PATH
-              value: /home/hailo/log_service
-            - name: HAILO_MONITOR
-              value: "1"
-            - name: HAILO_TRACE
-              value: "1"
-            - name: HAILO_TRACE_TIME_IN_SECONDS_BOUNDED_DUMP
-              value: "0"
-            - name: HAILO_TRACE_SIZE_IN_KB_BOUNDED_DUMP
-              value: "0"
-            - name: HAILO_TRACE_PATH
-              value: /home/hailo/traces
+          envFrom:
+            - configMapRef:
+                name: hailort-service-env
 
           #args: ["standalone"]
           

@@ -37,6 +37,8 @@ fi
 
 # daemon set 배포
 echo "[1/3] hailo-service DaemonSet을 적용한다."
+# HAILO_TRACE/HAILORT_LOGGER_PATH 값이 담긴 env 파일을 ConfigMap으로 배포한다.
+kubectl create configmap hailort-service-env --from-env-file=hailort_service.env -o yaml --dry-run=client | kubectl apply -f -
 kubectl apply -f "$SERVICE_MANIFEST"
 
 # DaemonSet 준비 대기 (최대 2분)
