@@ -1,4 +1,4 @@
-# Hailo K3s Deployment Guide
+# Hailo K3s Deployment Guide - Multi Container
 
 ### 0. 호스트 환경 준비 (Prerequisites)
 K3s 파드가 NPU 디바이스(/dev/hailo0)를 점유해야 하므로, 호스트 OS에서 실행 중인 서비스와 충돌하지 않도록 정리합니다.
