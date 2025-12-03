@@ -13,6 +13,7 @@ sudo systemctl stop hailort.service
 sudo systemctl disable hailort.service
 ```
 --------------------------
+--------------------------
 ### 1. 이미지 빌드 및 K3s 배포 (Build & Import)
 K3s는 로컬 Docker 데몬의 이미지를 바로 볼 수 없으므로, 빌드 후 K3s 런타임(containerd)으로 이미지를 옮겨야 합니다.
 ```bash
@@ -101,4 +102,37 @@ chmod +x run_all.sh run_worker.sh
 # 3. 스크립트 실행
 ./run_all.sh
 ```
+
+#### 실행 방법 C: 단일 워커 파드로 특정 Job 실행
+각 워커 파드가 서로 다른 모델을 실행하도록 JOB ID와 인스턴스 인덱스를 지정할 수 있다.
+
+```bash
+# 실행할 Job ID 지정 (run_configuration.json의 jobs[].id 값)
+export WORKER_JOB_ID=<JOB_ID>
+
+# (선택) 동일 Job 내에서 사용할 인스턴스 인덱스 지정, 기본값 1
+export WORKER_INSTANCE_INDEX=1
+
+# 스크립트 실행 시 대상 Job만 실행하고 나머지는 건너뜀
+./run_all.sh
+```
+
+- 여러 Job을 하나의 컨테이너에서 순차 실행하는 기본 동작과 달리, 단일 워커 모드에서는 지정된 Job만 실행하고 종료한다.
+- 단일 워커 모드에서는 공유 로그 디렉터리를 비우지 않으므로, 각 워커 파드의 로그가 `log_dir` 하위의 `job_<id>_<index>.log` 파일로 분리된다.
+--------------------------
+### 5. DaemonSet + 단일 워커 파드 배포 스크립트
+`run_k8s_workers.sh`를 사용하면 hailo-service DaemonSet을 적용한 뒤, `run_configuration.json`에 정의된 각 Job을 순서대로 하나씩 실행하는 워커 파드를 지정한 개수만큼 생성할 수 있다. `worker_count` 값은 정의된 Job 개수를 초과할 수 없다.
+
+```bash
+# 워커 파드 3개 생성 (jobs[0..2] 각각 사용)
+chmod +x run_k8s_workers.sh
+./run_k8s_workers.sh 3
+
+# 생성된 파드 상태 확인
+kubectl get pods -l app=hailo-worker
+kubectl logs -f hailo-worker-<JOB_ID>
+```
+
+- 스크립트는 `1-hailo-service.yaml`을 적용하고, DaemonSet이 준비될 때까지 `kubectl rollout status`로 대기한다.
+- 각 워커 파드는 `WORKER_JOB_ID` 환경변수를 통해 서로 다른 모델을 선택하여 `run_all.sh`를 실행한다. 로그는 `/home/hailo/logs_k3s`(호스트) 경로에 Job별로 저장된다.
 --------------------------
