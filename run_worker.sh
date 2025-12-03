@@ -21,15 +21,15 @@ if [ ! -f "$EXECUTABLE" ]; then
 fi
 
 # 실행 커맨드 구성
-CMD="$EXECUTABLE \"$HEF\" \"$IMAGE\" \"$LABEL\" $FRAMES $BATCH $PRIORITY $TIMEOUT $THRESHOLD"
+CMD=("$EXECUTABLE" "$HEF" "$IMAGE" "$LABEL" "$FRAMES" "$BATCH" "$PRIORITY" "$TIMEOUT" "$THRESHOLD")
 
 case "$MODE" in
     default)
-        eval "$CMD" > "$LOG_FILE" 2>&1 &
+        "${CMD[@]}" > "$LOG_FILE" 2>&1
         ;;
     log)
         export LD_PRELOAD=/usr/local/lib/libloghailort.so
-        eval "$CMD" > "$LOG_FILE" 2>&1 &
+        "${CMD[@]}" > "$LOG_FILE" 2>&1
         ;;
     *)
         echo "Unknown mode: $MODE"
@@ -37,5 +37,4 @@ case "$MODE" in
         ;;
 esac
 
-PID=$!
-echo "   -> Started PID=$PID (log: $LOG_FILE)"
+echo "   -> Finished run (log: $LOG_FILE)"
