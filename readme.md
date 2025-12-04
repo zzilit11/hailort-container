@@ -42,79 +42,44 @@ kubectl delete -f .
 ```
 --------------------------
 ### 3. Service Daemon Deployment (Infrastructure Layer)
-Deploy the hailo-service-daemon that controls the NPU first.
+Deploy the hailo-service-daemon that controls the NPU. The DaemonSet provides the Hailo runtime socket and device access to the worker pods.
 ```bash
-# 1. Apply Service Daemon YAML
+# Apply Service Daemon YAML (configures privileged access and hostPath mounts)
 kubectl apply -f 1-hailo-service.yaml
 
-# 2. Monitor pod creation status (Wait until 'Running')
+# Monitor pod creation status (wait until 'Running')
 kubectl get pods -l app=hailo-service -w
-
-# (Optional) Force replace existing DaemonSet if needed
-# kubectl replace --force -f 1-hailo-service.yaml
 ```
 
-#### [Check] Verify NPU Operation
-Verify that the service daemon has correctly acquired the hardware.
-```bash
-# 1. Check the running service pod name
-kubectl get pods -l app=hailo-service
-
-# 2. Enter the pod (Replace pod name: hailo-service-daemon-xxxx)
-kubectl exec -it <POD_NAME> -- /bin/bash
-```
+If you need to recreate the DaemonSet, rerun the apply command. An optional `hailort_service.env` file is turned into a ConfigMap so that environment variables are injected into the DaemonSet container.
 
 --------------------------
-### 4. Workload Execution (Application Layer)
-Execute the actual multi-process application (hailo-multi-process-runner).
+### 4. Workload Execution with Dedicated Worker Pods
+Workloads now run in individual worker pods instead of a single multi-process runner. Each worker pod is created from `2-multi-process-template.yaml` and executes only one Job ID from `run_configuration.json` by passing `WORKER_JOB_ID` to `run_all.sh`.
+
+**Deploy workers automatically**
 ```bash
-# 1. Deploy App Pod
-kubectl apply -f 2-app-multi-process.yaml
+# Create the DaemonSet (if not already running) and start N worker pods
+./run_k3s_workers.sh <worker_count>
 
-# 2. Check Pod status
-kubectl get pod hailo-multi-process-runner
+# Example: launch three workers for the first three jobs defined in run_configuration.json
+./run_k3s_workers.sh 3
 ```
 
-#### Execution Method A: Check Auto-Run (Logs)
-Use this when the YAML command is set to ./run_all.sh.
+- The script validates prerequisites (`kubectl`, `jq`, `sed`), applies the DaemonSet, waits for it to become ready, and then spawns worker pods named `hailo-worker-<job_id>`.
+- Worker pods mount `/home/hailo/npu-project/log_pod/log_worker` on the host to `/app/log_worker` in the container. Each pod writes a single log file per job as `job_<id>_<index>.log` without clearing the shared directory.
+- `WORKER_INSTANCE_INDEX` defaults to `1` but can be changed in the template if multiple instances per job are required.
 
-```Bash
-# Follow logs in real-time
-kubectl logs -f hailo-multi-process-runner
-```
-
-#### Execution Method B: Manual Execution (Debug)
-Use this when the YAML command is set to sleep infinity to manually enter the container and execute the script.
-
-```Bash
-# 1. Enter Shell
-kubectl exec -it hailo-multi-process-runner -- /bin/bash
-
-# --- Commands inside the container ---
-
-# 2. Execute script
-./run_all.sh
-```
-
-#### Execution Method C: Execute Specific Job with Single Worker Pod
-You can specify a Job ID and instance index so that each worker pod runs a different model.
-
+**Monitor or debug workers**
 ```bash
-# Specify the Job ID to run (jobs[].id value from run_configuration.json)
-export WORKER_JOB_ID=<JOB_ID>
+# Watch worker pod status
+kubectl get pods -l app=hailo-worker -w
 
-# (Optional) Specify the instance index within the same Job (default: 1)
-export WORKER_INSTANCE_INDEX=1
+# Tail a worker log file on the host
+tail -f /home/hailo/npu-project/log_pod/log_worker/job_<id>_<index>.log
 
-# Execute the script (Runs only the target Job and skips others)
-./run_all.sh
+# Enter a worker pod shell for manual debugging
+kubectl exec -it hailo-worker-<job_id> -- /bin/bash
 ```
 
-- 여러 Job을 하나의 컨테이너에서 순차 실행하는 기본 동작과 달리, 단일 워커 모드에서는 지정된 Job만 실행하고 종료한다.
-- 단일 워커 모드에서는 공유 로그 디렉터리를 비우지 않으므로, 각 워커 파드의 로그가 `log_dir` 하위의 `job_<id>_<index>.log` 파일로 분리된다.
---------------------------
-### 5. DaemonSet + Single Worker Pod Deployment Script
-
-```bash
-./run_k8s_workers.sh 3
-```
+Inside the pod you can rerun `./run_all.sh` or adjust environment variables as needed. The `run_configuration.json` file controls which model, inputs, and thresholds each job uses.
