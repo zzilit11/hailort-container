@@ -1,170 +1,120 @@
 # Hailo K3s Deployment Guide - Multi Container
 
-### 0. 호스트 환경 준비 (Prerequisites)
-K3s 파드가 NPU 디바이스(/dev/hailo0)를 점유해야 하므로, 호스트 OS에서 실행 중인 서비스와 충돌하지 않도록 정리합니다.
+### 0. Prerequisites (Host Preparation)
+Since K3s pods require exclusive access to the NPU device (/dev/hailo0), you must clean up conflicting services running on the host OS.
 ```bash
-# Host에서 Hailo 서비스 실행 상태 확인
+# Check the status of the Hailo service on the Host
 sudo systemctl status hailort.service
 
-# 서비스 중지 (Device Busy 방지)
+# Stop the service (Prevent Device Busy errors)
 sudo systemctl stop hailort.service
 
-# 재부팅 시 자동 실행 방지 (K8s가 관리하므로 비활성화 권장)
+# Disable auto-start on reboot (Recommended as K8s will manage this)
 sudo systemctl disable hailort.service
 ```
 --------------------------
---------------------------
-### 1. 이미지 빌드 및 K3s 배포 (Build & Import)
-K3s는 로컬 Docker 데몬의 이미지를 바로 볼 수 없으므로, 빌드 후 K3s 런타임(containerd)으로 이미지를 옮겨야 합니다.
+### 1. Build & Import (Image Build & K3s Deployment)
+K3s cannot directly access images from the local Docker daemon. You must build the image and then import it into the K3s runtime (containerd).
 ```bash
-# 1. Docker 이미지 빌드
+# 1. Build Docker image
 docker build -t hailo-app:v1 .
 
-# 2. 이미지를 tar로 저장 후 K3s containerd로 import
-# (방법 A: 파이프로 즉시 전송 - 권장)
+# 2. Save the image as a tar and import it to K3s containerd
+# (Method A: Pipe directly - Recommended)
 docker save hailo-app:v1 | sudo k3s ctr images import -
 
-# (방법 B: tar 파일 이용 시)
+# (Method B: Using a tar file)
 # docker save -o ../hailo-app.tar hailo-app:v1
 # sudo k3s ctr images import ../hailo-app.tar
 
-# 3. 이미지가 잘 들어갔는지 확인
+# 3. Verify that the image has been imported successfully
 sudo k3s ctr images ls | grep hailo-app
 ```
 --------------------------
-### 2. 기존 리소스 정리 (Cleanup)
-배포 전 기존에 실행 중인 파드나 설정을 제거하여 깨끗한 상태를 만듭니다.
+### 2. Cleanup (Remove Existing Resources)
+Remove existing pods or configurations before deployment to ensure a clean state.
 ```bash
-# 현재 디렉토리의 모든 yaml 파일에 정의된 리소스 삭제
+# Delete resources defined in all yaml files in the current directory
 kubectl delete -f .
 
-# (선택) 특정 파드만 삭제하고 싶을 때
+# (Optional) Delete specific pods only
 # kubectl delete pod -l app=hailo-service
 ```
 --------------------------
-### 3. 서비스 데몬 배포 (Infrastructure Layer)
-NPU를 제어하는 hailo-service-daemon을 먼저 실행합니다.
+### 3. Service Daemon Deployment (Infrastructure Layer)
+Deploy the hailo-service-daemon that controls the NPU first.
 ```bash
-# 1. 서비스 데몬 YAML 적용
+# 1. Apply Service Daemon YAML
 kubectl apply -f 1-hailo-service.yaml
 
-# 2. 파드 생성 상태 모니터링 (Running 뜰 때까지 대기)
+# 2. Monitor pod creation status (Wait until 'Running')
 kubectl get pods -l app=hailo-service -w
 
-# (옵션) 기존 데몬셋 강제 교체 필요 시
+# (Optional) Force replace existing DaemonSet if needed
 # kubectl replace --force -f 1-hailo-service.yaml
 ```
 
-#### [Check] NPU 동작 확인
-서비스 데몬이 하드웨어를 정상적으로 잡았는지 확인합니다.
+#### [Check] Verify NPU Operation
+Verify that the service daemon has correctly acquired the hardware.
 ```bash
-# 1. 실행 중인 서비스 파드 이름 확인
+# 1. Check the running service pod name
 kubectl get pods -l app=hailo-service
 
-# 2. 파드 내부 진입 (파드명 변경 필요: hailo-service-daemon-xxxx)
+# 2. Enter the pod (Replace pod name: hailo-service-daemon-xxxx)
 kubectl exec -it <POD_NAME> -- /bin/bash
-
-# 3. (파드 내부) NPU 사용량 실시간 모니터링
-watch -n 0.5 hailort-cli run-stats
-# 확인 후 exit으로 빠져나옴
 ```
 
-#### [Trace] DaemonSet에서 트레이스 파일 확인
-`1-hailo-service.yaml`에 HAILORT/HAILO 관련 환경변수가 포함되어 있어 DaemonSet으로 실행해도 트레이스와 로그가 남는다. 트레이스와 로그는 호스트의 디렉터리에 그대로 마운트되므로 노드에서 바로 확인할 수 있다.
-
-```bash
-# (노드에서) 트레이스/로그 디렉터리 내용 확인
-ls /home/hailo/traces
-ls /home/hailo/log_service
-
-# (파드 내부에서) 환경변수와 경로 확인
-kubectl exec -it <POD_NAME> -- env | grep HAILO
-kubectl exec -it <POD_NAME> -- ls /home/hailo/traces
-```
 --------------------------
-### 4. 워크로드 실행 (Application Layer)
-실제 멀티 프로세스 애플리케이션(hailo-multi-process-runner)을 실행합니다.
+### 4. Workload Execution (Application Layer)
+Execute the actual multi-process application (hailo-multi-process-runner).
 ```bash
-# 1. 앱 파드 배포
+# 1. Deploy App Pod
 kubectl apply -f 2-app-multi-process.yaml
 
-# 2. 파드 상태 확인
+# 2. Check Pod status
 kubectl get pod hailo-multi-process-runner
 ```
 
-#### 실행 방법 A: 자동 실행 확인 (Logs)
-YAML의 command가 ./run_all.sh로 설정된 경우입니다.
+#### Execution Method A: Check Auto-Run (Logs)
+Use this when the YAML command is set to ./run_all.sh.
 
 ```Bash
-# 로그 실시간 확인
+# Follow logs in real-time
 kubectl logs -f hailo-multi-process-runner
 ```
 
-#### 실행 방법 B: 수동 실행 (Debug)
-YAML의 command가 sleep infinity로 설정된 경우 직접 들어가서 실행합니다.
+#### Execution Method B: Manual Execution (Debug)
+Use this when the YAML command is set to sleep infinity to manually enter the container and execute the script.
 
 ```Bash
-# 1. 쉘 진입
+# 1. Enter Shell
 kubectl exec -it hailo-multi-process-runner -- /bin/bash
 
-# --- 아래는 컨테이너 내부 명령어 ---
+# --- Commands inside the container ---
 
-# 2. 실행 권한 재확인
-chmod +x run_all.sh run_worker.sh
-
-# 3. 스크립트 실행
+# 2. Execute script
 ./run_all.sh
 ```
 
-#### 실행 방법 C: 단일 워커 파드로 특정 Job 실행
-각 워커 파드가 서로 다른 모델을 실행하도록 JOB ID와 인스턴스 인덱스를 지정할 수 있다.
+#### Execution Method C: Execute Specific Job with Single Worker Pod
+You can specify a Job ID and instance index so that each worker pod runs a different model.
 
 ```bash
-# 실행할 Job ID 지정 (run_configuration.json의 jobs[].id 값)
+# Specify the Job ID to run (jobs[].id value from run_configuration.json)
 export WORKER_JOB_ID=<JOB_ID>
 
-# (선택) 동일 Job 내에서 사용할 인스턴스 인덱스 지정, 기본값 1
+# (Optional) Specify the instance index within the same Job (default: 1)
 export WORKER_INSTANCE_INDEX=1
 
-# 스크립트 실행 시 대상 Job만 실행하고 나머지는 건너뜀
+# Execute the script (Runs only the target Job and skips others)
 ./run_all.sh
 ```
 
 - 여러 Job을 하나의 컨테이너에서 순차 실행하는 기본 동작과 달리, 단일 워커 모드에서는 지정된 Job만 실행하고 종료한다.
 - 단일 워커 모드에서는 공유 로그 디렉터리를 비우지 않으므로, 각 워커 파드의 로그가 `log_dir` 하위의 `job_<id>_<index>.log` 파일로 분리된다.
 --------------------------
-### 5. DaemonSet + 단일 워커 파드 배포 스크립트
-`run_k8s_workers.sh`를 사용하면 hailo-service DaemonSet을 적용한 뒤, `run_configuration.json`에 정의된 각 Job을 순서대로 하나씩 실행하는 워커 파드를 지정한 개수만큼 생성할 수 있다. `worker_count` 값은 정의된 Job 개수를 초과할 수 없다.
+### 5. DaemonSet + Single Worker Pod Deployment Script
 
 ```bash
-# 워커 파드 3개 생성 (jobs[0..2] 각각 사용)
-chmod +x run_k8s_workers.sh
 ./run_k8s_workers.sh 3
-
-# 생성된 파드 상태 확인
-kubectl get pods -l app=hailo-worker
-kubectl logs -f hailo-worker-<JOB_ID>
 ```
-
-- 스크립트는 트레이스/로그 경로가 담긴 `hailort_service.env`를 ConfigMap(`hailort-service-env`)으로 생성한 뒤 `1-hailo-service.yaml`을 적용하고, DaemonSet이 준비될 때까지 `kubectl rollout status`로 대기한다.
-- 각 워커 파드는 `WORKER_JOB_ID` 환경변수를 통해 서로 다른 모델을 선택하여 `run_all.sh`를 실행한다. 로그는 `/home/hailo/logs_k3s`(호스트) 경로에 Job별로 저장된다.
-- 워커 컨테이너에도 `HAILO_TRACE` 관련 환경변수가 설정되어 있어, 라이브러리 레벨 트레이스가 `/home/hailo/traces`(호스트)에 남는다. 해당 디렉터리가 비어있다면 권한 또는 마운트 상태를 먼저 확인한다.
---------------------------
-### 6. 호스트에서 hailort_service 트레이스 활성화
-HailoRT 빌드 결과에는 `hailort_service` 실행 파일과 systemd 유닛(`hailort.service`)이 포함되어 있으나, 기본 환경설정 파일에서는 트레이스가 비활성화되어 있다. 아래 절차로 트레이스를 켠 상태의 설정을 `/etc/default/hailort_service`에 배포할 수 있다.
-
-1) 저장소 루트에 포함된 `hailort_service.env`(트레이스 활성화 값 포함)를 `/etc/default/hailort_service`로 복사한다. 제공된 스크립트를 사용하면 systemd 재로딩 및 서비스 시작까지 자동 처리된다.
-
-```bash
-sudo ./enable_hailort_trace.sh
-```
-
-2) systemd 없이 수동으로 적용하려면 다음과 같이 복사 후 서비스(또는 프로세스)를 다시 실행한다.
-
-```bash
-sudo install -Dm644 hailort_service.env /etc/default/hailort_service
-# hailort_service를 수동으로 재시작하거나, systemctl이 있다면 daemon-reload 후 enable --now 실행
-```
-
-해당 설정이 적용되면 `HAILORT_LOGGER_PATH=/home/hailo/log_service`, `HAILO_TRACE_PATH=/home/hailo/traces`에 로그/트레이스가 남는다. DaemonSet 컨테이너는 같은 경로를 호스트에 마운트하므로, 동일한 위치에서 파일을 확인할 수 있다.
---------------------------
