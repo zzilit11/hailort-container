@@ -1,0 +1,9 @@
+[2025-12-04 05:12:36.573] [error] [filesystem.cpp:161] CHECK failed - Failed to create directory "/app/log_service"
+HailoRT warning: Cannot create log file hailort.log! Path "/app/log_service" is not valid.
+[HailoRT] [error] CHECK_GRPC_STATUS failed with error code: 14.
+[HailoRT] [warning] Make sure HailoRT service is enabled and active!
+[HailoRT] [error] CHECK_SUCCESS failed with status=HAILO_RPC_FAILED(77)
+[HailoRT] [error] CHECK_SUCCESS failed with status=HAILO_RPC_FAILED(77)
+[HailoRT] [error] CHECK_SUCCESS failed with status=HAILO_RPC_FAILED(77)
+[HailoRT] [error] CHECK_SUCCESS failed with status=HAILO_RPC_FAILED(77)
+Failed create vdevice: 77
