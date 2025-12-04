@@ -1,14 +1,14 @@
 {
   "global_settings": {
     "mode": "default",
-    "log_dir": "./logs"
+    "log_dir": "/app/log_worker"
   },
   "jobs": [
     {
       "id": 1,
-      "hef_path": "/home/hailo/models/resnet50_v1.hef",
-      "image_path": "/home/hailo/images/_images_1.png",
-      "labels_path": "/home/hailo/labels/imagenet_labels.json",
+      "hef_path": "/app/models/resnet50_v1.hef",
+      "image_path": "/app/images/_images_1.png",
+      "labels_path": "/app/labels/imagenet_labels.json",
       "frame_count": 1000,
       "batch_size": 10,
       "priority": 16,
@@ -18,9 +18,9 @@
     },
     {
       "id": 2,
-      "hef_path": "/home/hailo/models/mobilenetv2.hef",
-      "image_path": "/home/hailo/images/_images_2.png",
-      "labels_path": "/home/hailo/labels/imagenet_labels.json",
+      "hef_path": "/app/models/mobilenetv2.hef",
+      "image_path": "/app/images/_images_2.png",
+      "labels_path": "/app/labels/imagenet_labels.json",
       "frame_count": 1000,
       "batch_size": 10,
       "priority": 16,
@@ -30,9 +30,9 @@
     },
     {
       "id": 3,
-      "hef_path": "/home/hailo/models/densenet121.hef",
-      "image_path": "/home/hailo/images/_images_3.png",
-      "labels_path": "/home/hailo/labels/imagenet_labels.json",
+      "hef_path": "/app/models/densenet121.hef",
+      "image_path": "/app/images/_images_3.png",
+      "labels_path": "/app/labels/imagenet_labels.json",
       "frame_count": 1000,
       "batch_size": 10,
       "priority": 16,
@@ -42,9 +42,9 @@
     },
     {
       "id": 4,
-      "hef_path": "/home/hailo/models/resnet152_v1.hef",
-      "image_path": "/home/hailo/images/_images_4.png",
-      "labels_path": "/home/hailo/labels/imagenet_labels.json",
+      "hef_path": "/app/models/resnet152_v1.hef",
+      "image_path": "/app/images/_images_4.png",
+      "labels_path": "/app/labels/imagenet_labels.json",
       "frame_count": 1000,
       "batch_size": 10,
       "priority": 16,

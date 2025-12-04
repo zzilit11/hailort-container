@@ -32,9 +32,9 @@ spec:
             - name: hailort-socket
               mountPath: /tmp
             - name: host-logs
-              mountPath: /home/hailo/log_service
+              mountPath: /app/log_service
             - name: host-traces
-              mountPath: /home/hailo/traces
+              mountPath: /app/traces
 
             # [추가 권장] 디바이스 파일 직접 마운트 (privileged가 있으면 생략 가능하나 명시 권장)
             - name: hailo-device
@@ -47,15 +47,14 @@ spec:
             type: Directory
         - name: host-logs
           hostPath:
-            path: /home/hailo/log_service
+            path: /home/hailo/npu-project/log_pod/log_service
             type: DirectoryOrCreate
         - name: host-traces
           hostPath:
-            path: /home/hailo/traces
+            path: /home/hailo/npu-project/log_pod/traces
             type: DirectoryOrCreate
 
         # [추가 권장]
         - name: hailo-device
           hostPath:
             path: /dev/hailo0
-            type: CharDevice

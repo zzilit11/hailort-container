@@ -1,52 +1,51 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: hailo-multi-process-runner
+  name: ${POD_NAME}
+  labels:
+    app: hailo-worker
+    job-id: "${JOB_ID}"
 spec:
   hostNetwork: true
+  restartPolicy: Never
   containers:
     - name: workload-runner
-      # [수정 1] 태그를 v1.0 -> v1 으로 변경
-      image: hailo-app:v1
+      image: ${IMAGE_NAME}
       imagePullPolicy: Never
 
       command: ["./run_all.sh"]
-      # 디버깅을 위해 컨테이너를 죽지 않게 유지함: 이 경우 shell에 진입해서 실행
       #command: ["sleep", "infinity"]
 
+      envFrom:
+        - configMapRef:
+            name: hailort-service-env
+      
+      env:
+        - name: WORKER_JOB_ID
+          value: "${JOB_ID}"
+        - name: WORKER_INSTANCE_INDEX
+          value: "${INSTANCE_INDEX}"
 
-      # [추가 1] 하드웨어 제어 및 메모리 매핑을 위해 privileged 모드 필수
       securityContext:
         privileged: true
 
       volumeMounts:
         - name: log-output-dir
-          mountPath: /app/logs
-        - name: host-home-hailo
-          mountPath: /home/hailo
+          mountPath: /app/log_worker
         - name: hailort-socket
           mountPath: /tmp
-
-          # [추가 2] 컨테이너 내부로 디바이스 파일 연결
         - name: hailo-device
           mountPath: /dev/hailo0
 
   volumes:
-    # [수정] Host 경로를 log_k3s로 변경
     - name: log-output-dir
       hostPath:
-        path: /home/hailo/logs_k3s
+        path: /home/hailo/npu-project/log_pod/log_worker
         type: DirectoryOrCreate
-    - name: host-home-hailo
-      hostPath:
-        path: /home/hailo
-        type: Directory
     - name: hailort-socket
       hostPath:
         path: /tmp
         type: Directory
-    
-    # [추가 3] 호스트의 실제 디바이스 경로 정의
     - name: hailo-device
       hostPath:
         path: /dev/hailo0

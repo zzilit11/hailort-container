@@ -41,20 +41,24 @@ COPY --from=builder /usr/local/bin/hailort_service /usr/bin/
 
 # 3. User Binary 복사
 WORKDIR /app
+COPY --from=builder /tmp_hailo_source /app/hailort
 RUN mkdir -p build
 COPY --from=builder /app/build/multi_process ./build/multi_process
 COPY --from=builder /app/build/inference_driver ./build/inference_driver
 
 # 4. [NEW] 스크립트 및 설정 파일 복사
 # 호스트의 현재 디렉토리에 있는 .sh 및 .json 파일을 컨테이너의 /app으로 복사
+COPY models /app/models
+COPY images /app/images
+COPY labels /app/labels
+
 COPY run_all.sh .
 COPY run_worker.sh .
 COPY run_configuration.json .
 
 # 5. 스크립트 수정 및 권한 부여
 # 컨테이너 안에서는 systemctl을 사용할 수 없으므로 해당 라인 주석 처리
-RUN sed -i 's/sudo systemctl restart hailort.service/# sudo systemctl restart hailort.service/g' run_all.sh && \
-    chmod +x run_all.sh run_worker.sh
+RUN chmod +x run_all.sh run_worker.sh
 
 # 6. Linker 설정
 RUN ldconfig
