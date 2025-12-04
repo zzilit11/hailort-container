@@ -13,8 +13,8 @@ spec:
       image: ${IMAGE_NAME}
       imagePullPolicy: Never
 
-      #command: ["./run_all.sh"]
-      command: ["sleep", "infinity"]
+      command: ["./run_all.sh"]
+      #command: ["sleep", "infinity"]
 
       envFrom:
         - configMapRef:

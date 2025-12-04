@@ -1,0 +1,75 @@
+[2025-12-04 05:29:40.622] [18] [HailoRT] [info] [vdevice.cpp:535] [create] Creating vdevice with params: device_count: 1, scheduling_algorithm: ROUND_ROBIN, multi_process_service: false
+[2025-12-04 05:29:40.636] [18] [HailoRT] [info] [device.cpp:51] [Device] OS Version: Linux 6.8.0-1031-raspi #35-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul  3 15:00:20 UTC 2025 aarch64
+[2025-12-04 05:29:40.638] [18] [HailoRT] [info] [control.cpp:113] [control__parse_identify_results] firmware_version is: 4.23.0
+[2025-12-04 05:29:40.638] [18] [HailoRT] [info] [vdevice.cpp:682] [create] VDevice Infos: 0000:01:00.0
+[2025-12-04 05:29:40.928] [17] [HailoRT] [info] [internal_buffer_manager.cpp:77] [print_execution_results] Planned internal buffer memory: CMA=0 CMA-Desc=131072 Pinned=1255424. memory to edge layer usage factor is 1
+[2025-12-04 05:29:40.928] [17] [HailoRT] [info] [internal_buffer_manager.cpp:86] [print_execution_results] Default Internal buffer planner executed successfully
+[2025-12-04 05:29:40.991] [17] [HailoRT] [info] [device_internal.cpp:57] [configure] Configuring HEF took 73.325587 milliseconds
+[2025-12-04 05:29:40.996] [17] [HailoRT] [info] [vdevice.cpp:780] [configure] Configuring HEF on VDevice took 78.25048 milliseconds
+[2025-12-04 05:29:41.036] [17] [HailoRT] [info] [scheduled_core_op_state.cpp:87] [set_priority] Setting scheduler priority of resnet50_v1 to 16
+[2025-12-04 05:29:41.036] [17] [HailoRT] [info] [scheduled_core_op_state.cpp:66] [set_timeout] Setting scheduler threshold timeout of resnet50_v1 to 1000ms
+[2025-12-04 05:29:41.037] [17] [HailoRT] [info] [scheduled_core_op_state.cpp:76] [set_threshold] Setting scheduler threshold of resnet50_v1 to 3 frames
+[2025-12-04 05:29:41.038] [18] [HailoRT] [info] [edge_elements.cpp:52] [create] Created (HwWriteEl3resnet50_v1/input_layer1 | hw_frame_size: 150528)
+[2025-12-04 05:29:41.038] [18] [HailoRT] [info] [vstream.cpp:754] [InputVStreamImpl] Creating resnet50_v1/input_layer1...
+[2025-12-04 05:29:41.038] [18] [HailoRT] [info] [vstream_builder.cpp:102] [create_inputs] Input pipeline 'resnet50_v1/input_layer1': (HwWriteEl3resnet50_v1/input_layer1 | hw_frame_size: 150528) >> HW
+[2025-12-04 05:29:41.041] [18] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl0resnet50_v1/fc1 | hw_frame_size: 1000)
+[2025-12-04 05:29:41.041] [18] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl0resnet50_v1/fc1 | timeout: 10s)
+[2025-12-04 05:29:41.041] [18] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating resnet50_v1/fc1...
+[2025-12-04 05:29:41.041] [18] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'resnet50_v1/fc1': HW >> (HwReadEl0resnet50_v1/fc1 | hw_frame_size: 1000) >> (UserBuffQEl0resnet50_v1/fc1 | timeout: 10s)
+[2025-12-04 05:29:41.169] [29] [HailoRT] [info] [vdevice.cpp:535] [create] Creating vdevice with params: device_count: 1, scheduling_algorithm: ROUND_ROBIN, multi_process_service: false
+[2025-12-04 05:29:41.252] [34] [HailoRT] [info] [internal_buffer_manager.cpp:75] [print_execution_results] Default Internal buffer planner failed to meet requirements
+[2025-12-04 05:29:41.252] [34] [HailoRT] [info] [internal_buffer_manager.cpp:86] [print_execution_results] Default Internal buffer planner executed successfully
+[2025-12-04 05:29:41.280] [34] [HailoRT] [info] [device_internal.cpp:57] [configure] Configuring HEF took 35.414159 milliseconds
+[2025-12-04 05:29:41.285] [34] [HailoRT] [info] [vdevice.cpp:780] [configure] Configuring HEF on VDevice took 40.891695 milliseconds
+[2025-12-04 05:29:41.305] [42] [HailoRT] [info] [scheduled_core_op_state.cpp:87] [set_priority] Setting scheduler priority of mobilenetv2 to 16
+[2025-12-04 05:29:41.306] [42] [HailoRT] [info] [scheduled_core_op_state.cpp:66] [set_timeout] Setting scheduler threshold timeout of mobilenetv2 to 1000ms
+[2025-12-04 05:29:41.307] [46] [HailoRT] [info] [scheduled_core_op_state.cpp:76] [set_threshold] Setting scheduler threshold of mobilenetv2 to 3 frames
+[2025-12-04 05:29:41.310] [45] [HailoRT] [info] [edge_elements.cpp:52] [create] Created (HwWriteEl1mobilenetv2/input_layer1 | hw_frame_size: 150528)
+[2025-12-04 05:29:41.310] [45] [HailoRT] [info] [vstream.cpp:754] [InputVStreamImpl] Creating mobilenetv2/input_layer1...
+[2025-12-04 05:29:41.310] [45] [HailoRT] [info] [vstream_builder.cpp:102] [create_inputs] Input pipeline 'mobilenetv2/input_layer1': (HwWriteEl1mobilenetv2/input_layer1 | hw_frame_size: 150528) >> HW
+[2025-12-04 05:29:41.319] [47] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl0mobilenetv2/fc1 | hw_frame_size: 1000)
+[2025-12-04 05:29:41.321] [47] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl0mobilenetv2/fc1 | timeout: 10s)
+[2025-12-04 05:29:41.321] [47] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating mobilenetv2/fc1...
+[2025-12-04 05:29:41.321] [47] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'mobilenetv2/fc1': HW >> (HwReadEl0mobilenetv2/fc1 | hw_frame_size: 1000) >> (UserBuffQEl0mobilenetv2/fc1 | timeout: 10s)
+[2025-12-04 05:29:41.645] [137] [HailoRT] [info] [vdevice.cpp:535] [create] Creating vdevice with params: device_count: 1, scheduling_algorithm: ROUND_ROBIN, multi_process_service: false
+[2025-12-04 05:29:41.829] [163] [HailoRT] [info] [internal_buffer_manager.cpp:77] [print_execution_results] Planned internal buffer memory: CMA=0 CMA-Desc=524288 Pinned=3703808. memory to edge layer usage factor is 0.633561
+[2025-12-04 05:29:41.829] [163] [HailoRT] [info] [internal_buffer_manager.cpp:86] [print_execution_results] Default Internal buffer planner executed successfully
+[2025-12-04 05:29:41.942] [163] [HailoRT] [info] [device_internal.cpp:57] [configure] Configuring HEF took 126.558301 milliseconds
+[2025-12-04 05:29:41.948] [163] [HailoRT] [info] [vdevice.cpp:780] [configure] Configuring HEF on VDevice took 132.817858 milliseconds
+[2025-12-04 05:29:41.961] [163] [HailoRT] [info] [scheduled_core_op_state.cpp:87] [set_priority] Setting scheduler priority of densenet121 to 16
+[2025-12-04 05:29:41.961] [163] [HailoRT] [info] [scheduled_core_op_state.cpp:66] [set_timeout] Setting scheduler threshold timeout of densenet121 to 1000ms
+[2025-12-04 05:29:41.962] [163] [HailoRT] [info] [scheduled_core_op_state.cpp:76] [set_threshold] Setting scheduler threshold of densenet121 to 3 frames
+[2025-12-04 05:29:41.963] [163] [HailoRT] [info] [edge_elements.cpp:52] [create] Created (HwWriteEl3densenet121/input_layer1 | hw_frame_size: 150528)
+[2025-12-04 05:29:41.963] [163] [HailoRT] [info] [vstream.cpp:754] [InputVStreamImpl] Creating densenet121/input_layer1...
+[2025-12-04 05:29:41.963] [163] [HailoRT] [info] [vstream_builder.cpp:102] [create_inputs] Input pipeline 'densenet121/input_layer1': (HwWriteEl3densenet121/input_layer1 | hw_frame_size: 150528) >> HW
+[2025-12-04 05:29:41.966] [198] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl0densenet121/fc1 | hw_frame_size: 1000)
+[2025-12-04 05:29:41.966] [198] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl0densenet121/fc1 | timeout: 10s)
+[2025-12-04 05:29:41.966] [198] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating densenet121/fc1...
+[2025-12-04 05:29:41.966] [198] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'densenet121/fc1': HW >> (HwReadEl0densenet121/fc1 | hw_frame_size: 1000) >> (UserBuffQEl0densenet121/fc1 | timeout: 10s)
+[2025-12-04 05:29:42.007] [209] [HailoRT] [info] [vdevice.cpp:535] [create] Creating vdevice with params: device_count: 1, scheduling_algorithm: ROUND_ROBIN, multi_process_service: false
+[2025-12-04 05:29:42.724] [281] [HailoRT] [info] [internal_buffer_manager.cpp:77] [print_execution_results] Planned internal buffer memory: CMA=0 CMA-Desc=393216 Pinned=5019648. memory to edge layer usage factor is 0.68964547
+[2025-12-04 05:29:42.724] [281] [HailoRT] [info] [internal_buffer_manager.cpp:86] [print_execution_results] Default Internal buffer planner executed successfully
+[2025-12-04 05:29:42.838] [281] [HailoRT] [info] [device_internal.cpp:57] [configure] Configuring HEF took 122.759459 milliseconds
+[2025-12-04 05:29:42.842] [281] [HailoRT] [info] [vdevice.cpp:780] [configure] Configuring HEF on VDevice took 126.980035 milliseconds
+[2025-12-04 05:29:42.898] [333] [HailoRT] [info] [scheduled_core_op_state.cpp:87] [set_priority] Setting scheduler priority of resnet152_v1 to 16
+[2025-12-04 05:29:42.900] [334] [HailoRT] [info] [scheduled_core_op_state.cpp:66] [set_timeout] Setting scheduler threshold timeout of resnet152_v1 to 1000ms
+[2025-12-04 05:29:42.902] [323] [HailoRT] [info] [scheduled_core_op_state.cpp:76] [set_threshold] Setting scheduler threshold of resnet152_v1 to 3 frames
+[2025-12-04 05:29:42.904] [341] [HailoRT] [info] [edge_elements.cpp:52] [create] Created (HwWriteEl3resnet152_v1/input_layer1 | hw_frame_size: 150528)
+[2025-12-04 05:29:42.904] [341] [HailoRT] [info] [vstream.cpp:754] [InputVStreamImpl] Creating resnet152_v1/input_layer1...
+[2025-12-04 05:29:42.904] [341] [HailoRT] [info] [vstream_builder.cpp:102] [create_inputs] Input pipeline 'resnet152_v1/input_layer1': (HwWriteEl3resnet152_v1/input_layer1 | hw_frame_size: 150528) >> HW
+[2025-12-04 05:29:42.906] [340] [HailoRT] [info] [edge_elements.cpp:287] [create] Created (HwReadEl0resnet152_v1/fc1 | hw_frame_size: 1000)
+[2025-12-04 05:29:42.906] [340] [HailoRT] [info] [queue_elements.cpp:800] [create] Created (UserBuffQEl0resnet152_v1/fc1 | timeout: 10s)
+[2025-12-04 05:29:42.906] [340] [HailoRT] [info] [vstream.cpp:1114] [OutputVStreamImpl] Creating resnet152_v1/fc1...
+[2025-12-04 05:29:42.906] [340] [HailoRT] [info] [vstream_builder.cpp:220] [create_outputs] Output pipeline 'resnet152_v1/fc1': HW >> (HwReadEl0resnet152_v1/fc1 | hw_frame_size: 1000) >> (UserBuffQEl0resnet152_v1/fc1 | timeout: 10s)
+[2025-12-04 05:30:03.056] [26] [HailoRT] [info] [queue_elements.cpp:855] [run_in_thread] Shutdown event was signaled in dequeue of UserBuffQEl0resnet50_v1/fc1!
+[2025-12-04 05:30:03.056] [26] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl0resnet50_v1/fc1 is not running anymore, exiting..
+[2025-12-04 05:30:03.056] [606] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl0resnet50_v1/fc1 has 0 frames in his Queue on destruction
+[2025-12-04 05:30:07.093] [51] [HailoRT] [info] [queue_elements.cpp:855] [run_in_thread] Shutdown event was signaled in dequeue of UserBuffQEl0mobilenetv2/fc1!
+[2025-12-04 05:30:07.093] [51] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl0mobilenetv2/fc1 is not running anymore, exiting..
+[2025-12-04 05:30:07.093] [610] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl0mobilenetv2/fc1 has 0 frames in his Queue on destruction
+[2025-12-04 05:30:09.114] [200] [HailoRT] [info] [queue_elements.cpp:855] [run_in_thread] Shutdown event was signaled in dequeue of UserBuffQEl0densenet121/fc1!
+[2025-12-04 05:30:09.114] [200] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl0densenet121/fc1 is not running anymore, exiting..
+[2025-12-04 05:30:09.114] [625] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl0densenet121/fc1 has 0 frames in his Queue on destruction
+[2025-12-04 05:30:10.465] [343] [HailoRT] [info] [queue_elements.cpp:855] [run_in_thread] Shutdown event was signaled in dequeue of UserBuffQEl0resnet152_v1/fc1!
+[2025-12-04 05:30:10.465] [343] [HailoRT] [info] [queue_elements.cpp:68] [operator()] Thread in element UserBuffQEl0resnet152_v1/fc1 is not running anymore, exiting..
+[2025-12-04 05:30:10.465] [637] [HailoRT] [info] [queue_elements.cpp:46] [~BaseQueueElement] Queue element UserBuffQEl0resnet152_v1/fc1 has 0 frames in his Queue on destruction
